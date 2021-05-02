@@ -6,8 +6,9 @@
       <v-autocomplete
         solo
         label="Location"
-        v-model="location"
-        :search-input.sync="location"
+        :loading="this.isLoading"
+        v-model="searchInput"
+        :search-input.sync="search"
         cache-items
         hide-no-data
         prepend-inner-icon="mdi-map-marker"
@@ -25,9 +26,12 @@
     name: 'Home',
     data() {
       return {
-        location: null,
+        searchInput: null,
+        search: null,
         searchResults: [],
         service: null,
+        isLoading: false,
+        venues: []
       }
     },
     metaInfo () {
@@ -50,16 +54,19 @@
       displaySuggestions (predictions, status) {
         if (status !== window.google.maps.places.PlacesServiceStatus.OK) {
           this.searchResults = []
+          this.isLoading = false
           return
         }
         this.searchResults = predictions.map(prediction => prediction.description) 
+        this.isLoading = false
       }
     },
     watch: {
-      location (newValue) {
+      search (newValue) {
         if (newValue) {
+          this.isLoading = true
           this.service.getPlacePredictions({
-            input: this.location,
+            input: this.search,
             types: ['(cities)']
           }, this.displaySuggestions)
         }
