@@ -30,7 +30,15 @@
         search: null,
         searchResults: [],
         service: null,
+        geocoder: null,
+        geocodeResults: {
+          lat: '',
+          lng: ''
+        },
         isLoading: false,
+        selectedCoordinates: null,
+        selectedCoordinateLat: null,
+        selectedCoordinateLng: null,
         venues: []
       }
     },
@@ -45,11 +53,12 @@
       }
     }, 
     methods: {
-      doSearch() {
-        
-      },
       MapsInit () {
         this.service = new window.google.maps.places.AutocompleteService()
+        this.geocoder = new window.google.maps.Geocoder()
+      },
+      doSearch() {
+        
       },
       displaySuggestions (predictions, status) {
         if (status !== window.google.maps.places.PlacesServiceStatus.OK) {
@@ -57,7 +66,17 @@
           this.isLoading = false
           return
         }
-        this.searchResults = predictions.map(prediction => prediction.description) 
+        this.searchResults = predictions.map(prediction => prediction.description)
+        predictions.map(prediction => {
+          this.geocoder.geocode({
+            'placeId': prediction.place_id
+          }, function(responses, status) {
+            if (status == 'OK') {
+              this.selectedCoordinates = [responses[0].geometry.location.lat(), responses[0].geometry.location.lng()]
+              console.log(this.selectedCoordinates)           
+            }
+          })
+        })
         this.isLoading = false
       }
     },
