@@ -18,6 +18,13 @@
         return-object
       ></v-autocomplete>
     </v-form>
+    <div id="results">
+      <template v-for="(place, idx) in places">
+        <v-card :key="idx">
+          <v-card-title>{{place.name}}</v-card-title>
+        </v-card>
+      </template>
+    </div>
   </v-container>
 </template>
 
@@ -39,7 +46,7 @@
         selectedCoordinates: null,
         selectedCoordinateLat: null,
         selectedCoordinateLng: null,
-        venues: []
+        places: []
       }
     },
     metaInfo () {
@@ -67,13 +74,12 @@
           return
         }
         this.searchResults = predictions.map(prediction => prediction.description)
-        predictions.map(prediction => {
+        this.selectedCoordinates = predictions.map(prediction => {
           this.geocoder.geocode({
             'placeId': prediction.place_id
           }, function(responses, status) {
             if (status == 'OK') {
-              this.selectedCoordinates = [responses[0].geometry.location.lat(), responses[0].geometry.location.lng()]
-              console.log(this.selectedCoordinates)           
+              return {lat: responses[0].geometry.location.lat(), lng: responses[0].geometry.location.lng()}
             }
           })
         })
