@@ -13,7 +13,7 @@
         hide-no-data
         prepend-inner-icon="mdi-map-marker"
         append-outer-icon="mdi-send"
-        @click:append-outer="this.doSearch()"
+        @click:append-outer="doSearch()"
         :items="this.searchResults"
         return-object
       ></v-autocomplete>
@@ -36,7 +36,9 @@
         searchInput: null,
         search: null,
         searchResults: [],
+        selectedSearchResult: null,
         service: null,
+        placesService: null,
         geocoder: null,
         geocodeResults: {
           lat: '',
@@ -62,10 +64,28 @@
     methods: {
       MapsInit () {
         this.service = new window.google.maps.places.AutocompleteService()
+        this.placesService = new window.google.maps.places.PlacesService()
         this.geocoder = new window.google.maps.Geocoder()
       },
       doSearch() {
-        
+        this.isLoading = true
+        this.placesService.getDetails(this.selectedSearchResult[0].place_id, function(place, status) {
+          if (status == 'OK') {
+            console.log(place.geometry.location)
+            this.selectedCoordinates = place.geometry.location
+          }
+        })
+        // this.geocoder.geocode({
+        //   'placeId': this.selectedSearchResult[0].place_id
+        // }, function(responses, status) {
+        //   console.log(responses)
+        //   this.selectedCoordinates = responses[0].geometry.location
+        //   if (status == 'OK') {
+        //     this.isLoading = false
+        //   } else {
+        //     console.log('error: ' + status)
+        //   }
+        // })
       },
       displaySuggestions (predictions, status) {
         if (status !== window.google.maps.places.PlacesServiceStatus.OK) {
@@ -74,15 +94,16 @@
           return
         }
         this.searchResults = predictions.map(prediction => prediction.description)
-        this.selectedCoordinates = predictions.map(prediction => {
-          this.geocoder.geocode({
-            'placeId': prediction.place_id
-          }, function(responses, status) {
-            if (status == 'OK') {
-              return {lat: responses[0].geometry.location.lat(), lng: responses[0].geometry.location.lng()}
-            }
-          })
-        })
+        this.selectedSearchResult = predictions.map(prediction => prediction)
+        // this.selectedCoordinates = predictions.map(prediction => {
+        //   this.geocoder.geocode({
+        //     'placeId': prediction.place_id
+        //   }, function(responses, status) {
+        //     if (status == 'OK') {
+        //       return {lat: responses[0].geometry.location.lat(), lng: responses[0].geometry.location.lng()}
+        //     }
+        //   })
+        // })
         this.isLoading = false
       }
     },
